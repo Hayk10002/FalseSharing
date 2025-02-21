@@ -7,7 +7,8 @@
 
 // x and y are on the same cache line
 // This is bad because when one thread writes to x, the cache line is invalidated and the other thread can't read y until the cache line is reloaded
-struct SharedBetweenThreadsBad
+// Aligning the struct to 64 bytes to ensure that x and y are on the same cache line
+struct alignas(64) SharedBetweenThreadsBad
 {
     volatile int x{0};
     volatile int y{1};
@@ -15,11 +16,11 @@ struct SharedBetweenThreadsBad
 
 // x and y are on different cache lines
 // This is good because when one thread writes to x, the cache line is invalidated but the other thread can still read y
+// Aligning y to 64 bytes to ensure that it will be at the start of the next cache line, and x will be on the previous cache line
 struct SharedBetweenThreadsGood
 {
     volatile int x{0};
-    unsigned int padding[15];
-    volatile int y{1};
+    alignas(64) volatile int y{1};
 };
 
 template<class SharedBetweenThreads>
